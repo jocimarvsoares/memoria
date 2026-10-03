@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>Agenda & Memória IA</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#18202a;--muted:#64748b;--primary:#4f46e5;--primary2:#7c3aed;--line:#e2e8f0;--danger:#dc2626;--ok:#059669;--shadow:0 10px 30px rgba(15,23,42,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea,select{font:inherit} button{cursor:pointer}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}.sidebar{background:#111827;color:#fff;padding:22px 16px;position:sticky;top:0;height:100vh}
+.brand{font-weight:800;font-size:20px;margin:0 0 24px}.brand small{display:block;color:#94a3b8;font-size:11px;font-weight:500;margin-top:4px}
+.nav{display:grid;gap:7px}.nav button{border:0;background:transparent;color:#cbd5e1;text-align:left;padding:12px 13px;border-radius:10px}.nav button.active,.nav button:hover{background:#273244;color:#fff}
+.sidebar .bottom{position:absolute;bottom:18px;left:16px;right:16px}.main{padding:20px 24px;max-width:1400px;width:100%;margin:auto}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:22px}.top h1{margin:0;font-size:28px}.top p{margin:5px 0 0;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;padding:10px 14px;border-radius:10px}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}.btn.danger{color:var(--danger)}.edit-btn{border:0;background:transparent;padding:2px 5px;margin-left:5px;font-size:15px;line-height:1;color:#4f46e5;vertical-align:middle}.edit-btn:hover{background:#eef2ff;border-radius:6px}.maps-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:0;background:transparent;padding:0;margin-left:4px;vertical-align:middle;font-size:16px;line-height:1;cursor:pointer}.maps-btn:hover{background:#eef2ff;border-radius:6px}
+.grid{display:grid;gap:16px}.grid4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}.card h3{margin:0 0 12px}.metric{font-size:30px;font-weight:800}.muted{color:var(--muted);font-size:13px}
+.section{display:none}.section.active{display:block}
+.form{display:grid;gap:12px}.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+label{display:grid;gap:6px;font-weight:650;font-size:13px} input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff;color:var(--text)}textarea{min-height:120px;resize:vertical}
+.badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:11px;font-weight:700}
+.list{display:grid;gap:10px}.item{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}.item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.item h4{margin:0 0 5px}.item p{margin:5px 0;color:#475569;white-space:pre-wrap}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.search{max-width:340px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.weekday{font-size:12px;color:var(--muted);font-weight:700;padding:7px}.day{min-height:105px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px;position:relative}.day.mutedday{background:#f8fafc;color:#94a3b8}.day.today{outline:2px solid var(--primary)}.daynum{font-weight:800}.event{font-size:11px;margin-top:5px;background:#eef2ff;color:#3730a3;border-radius:6px;padding:4px;overflow:hidden}
+.pill{padding:5px 8px;border-radius:7px;background:#f1f5f9;font-size:12px}.success{color:var(--ok)}.danger-text{color:var(--danger)}
+pre.memory{white-space:pre-wrap;background:#0f172a;color:#dbeafe;padding:16px;border-radius:12px;max-height:420px;overflow:auto;font-size:12px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:30}.modal-backdrop.show{display:flex}.modal{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 25px 60px rgba(15,23,42,.25);padding:20px}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.modal-head h3{margin:0}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+.diary-section{min-height:calc(100vh - 56px)}
+.diary-header{position:sticky;top:0;z-index:12;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 0 12px;margin-bottom:10px;background:var(--bg);border-bottom:1px solid var(--line)}
+.diary-title h1{margin:0;font-size:22px;line-height:1.1}.diary-title p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.diary-actions{display:flex;align-items:center;gap:8px}.diary-search{width:min(300px,32vw);padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text)}
+.diary-records-card{padding:10px}.diary-list{gap:7px}.diary-list .item{padding:9px 11px;border-radius:10px}.diary-list .item p{margin:3px 0;font-size:12px}.diary-list .item h4{margin-bottom:3px;font-size:14px}.diary-list .muted{font-size:12px}.diary-modal{width:min(760px,100%)}.diary-modal textarea{min-height:120px}
+@media(max-width:700px){.diary-header{align-items:stretch;flex-direction:column}.diary-actions{width:100%}.diary-search{width:100%}}
+.people-section{min-height:calc(100vh - 56px)}
+.people-header{position:sticky;top:0;z-index:12;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 0 12px;margin-bottom:10px;background:var(--bg);border-bottom:1px solid var(--line)}
+.people-title h1{margin:0;font-size:22px;line-height:1.1}.people-title p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.people-actions{display:flex;align-items:center;gap:8px}.people-search{width:min(300px,32vw);padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text)}
+.people-records-card{padding:10px}.people-list{gap:7px}.people-list .item{padding:9px 11px;border-radius:10px}.people-list .item p{margin:3px 0;font-size:12px}.people-list .item h4{margin-bottom:3px;font-size:14px}.people-list .muted{font-size:12px}
+.people-modal{width:min(760px,100%)}.people-modal textarea{min-height:90px}
+@media(max-width:700px){.people-header{align-items:stretch;flex-direction:column}.people-actions{width:100%}.people-search{width:100%}}
+.toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:13px 16px;border-radius:10px;box-shadow:var(--shadow);display:none;z-index:20}.toast.show{display:block}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{height:auto;position:relative}.sidebar .bottom{position:static;margin-top:20px}.nav{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.grid2,.row,.row3{grid-template-columns:1fr}.main{padding:18px}}
+@media(max-width:600px){.nav{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:1fr}.day{min-height:80px}.event{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">Agenda & Memória IA<small>Seu arquivo pessoal de contexto</small></div>
+  <div class="nav" id="nav">
+    <button data-section="dashboard" class="active">🏠 Visão geral</button>
+    <button data-section="calendar">📅 Agenda</button>
+    <button data-section="diary">📝 Diário</button>
+    <button data-section="people">👥 Pessoas</button>
+    <button data-section="preferences">⭐ Preferências</button>
+    <button data-section="memories">🧠 Memórias</button>
+    <button data-section="backup">💾 Backup & IA</button>
+  </div>
+  <div class="bottom muted" style="color:#94a3b8">Dados salvos localmente no navegador.</div>
+</aside>
+
+<main class="main">
+<section id="dashboard" class="section active">
+  <div class="top"><div><h1>Visão geral</h1><p>Registre sua vida e construa sua memória virtual estruturada.</p></div><div class="actions"><button class="btn primary" onclick="openQuick()">+ Registro rápido</button></div></div>
+  <div class="grid grid4" id="metrics"></div>
+  <div class="grid grid2" style="margin-top:16px">
+    <div class="card"><h3>Próximos aniversários</h3><div id="upcomingBirthdays" class="list"></div></div>
+    <div class="card"><h3>Últimas memórias</h3><div id="recentMemories" class="list"></div></div>
+  </div>
+</section>
+
+<section id="calendar" class="section">
+  <div class="top"><div><h1>Agenda</h1><p>Eventos, compromissos e registros por data.</p></div><div class="actions"><button class="btn primary" onclick="newEvent()">+ Evento</button></div></div>
+  <div class="card"><div class="toolbar"><button class="btn" onclick="prevMonth()">←</button><strong id="monthTitle" style="padding:10px"></strong><button class="btn" onclick="nextMonth()">→</button><button class="btn" onclick="goToday()">Hoje</button></div><div class="calendar" id="calendarGrid"></div></div>
+  <div class="card" style="margin-top:16px"><h3>Eventos cadastrados</h3><div id="eventList" class="list"></div></div>
+</section>
+
+<section id="diary" class="section diary-section">
+  <div class="diary-header">
+    <div class="diary-title"><h1>Diário</h1><p>Registre livremente filmes, comida, cotidiano, trabalho e hobbies.</p></div>
+    <div class="diary-actions">
+      <input id="diarySearch" class="diary-search" type="search" placeholder="Pesquisar no diário..." oninput="renderDiary()">
+      <button class="btn primary" type="button" onclick="openDiaryCreate()">+ Cadastrar</button>
+    </div>
+  </div>
+  <div class="card diary-records-card"><div id="diaryList" class="list diary-list"></div></div>
+</section>
+
+<section id="people" class="section people-section">
+  <div class="people-header">
+    <div class="people-title"><h1>Pessoas</h1><p>Familiares, amigos, colegas e datas importantes.</p></div>
+    <div class="people-actions">
+      <input id="peopleSearch" class="people-search" type="search" placeholder="Buscar pessoas..." autocomplete="off">
+      <button class="btn primary" type="button" onclick="openPeopleCreate()">+ Cadastrar</button>
+    </div>
+  </div>
+  <div class="card people-records-card"><div id="peopleList" class="list people-list"></div></div>
+</section>
+
+<section id="preferences" class="section">
+  <div class="top"><div><h1>Preferências & Perfil</h1><p>Informações estáveis que ajudam uma futura IA a entender você.</p></div></div>
+  <div class="card">
+    <form id="prefsForm" class="form">
+      <div class="row"><label>Nome<input id="profileName"></label><label>Como prefere ser chamado<input id="profileNickname"></label></div>
+      <label>Sobre você<textarea id="profileAbout" placeholder="Descrição livre do seu perfil..."></textarea></label>
+      <label>Gostos<textarea id="profileLikes" placeholder="Ex.: tecnologia, cinema, viagens"></textarea></label>
+      <label>Não gosto<textarea id="profileDislikes"></textarea></label>
+      <label>Objetivos / planos<textarea id="profileGoals"></textarea></label>
+      <label>Conceitos<textarea id="profileConcepts" placeholder="Ideias, princípios, conceitos, referências e formas de pensar importantes para você..."></textarea></label>
+      <button class="btn primary" style="width:max-content">Salvar perfil</button>
+    </form>
+  </div>
+</section>
+
+<section id="memories" class="section">
+  <div class="top"><div><h1>Memórias</h1><p>Conhecimentos consolidados que o sistema poderá entregar a outra IA.</p></div><button class="btn primary" onclick="deriveMemories()">Atualizar memórias</button></div>
+  <div class="card"><div class="toolbar"><input class="search" id="memorySearch" placeholder="Pesquisar memórias..." oninput="renderMemories()"></div><div id="memoryList" class="list"></div></div>
+</section>
+
+<section id="backup" class="section">
+  <div class="top"><div><h1>Backup & Memória Virtual</h1><p>Exporte tudo para reutilizar em outra IA no futuro.</p></div></div>
+  <div class="grid grid2">
+    <div class="card"><h3>Exportar</h3><p class="muted">O sistema gera um pacote completo em JSON e formatos de memória estruturados para outras IAs. Os dados de pessoas ficam associados como uma ficha única, com família, contatos, aniversário e observações.</p><div class="actions"><button class="btn primary" onclick="downloadJSON()">Baixar backup JSON</button><button class="btn" onclick="downloadCSV()">Baixar memória CSV</button><button class="btn" onclick="downloadMemoryTXT()">Baixar memória TXT</button></div></div>
+    <div class="card"><h3>Importar</h3><p class="muted">Restaure um backup JSON feito neste aplicativo.</p><input id="importFile" type="file" accept=".json,application/json"><div style="margin-top:10px"><button class="btn" onclick="importJSON()">Restaurar backup</button></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Prévia do arquivo de memória virtual</h3><pre id="memoryPreview" class="memory"></pre></div>
+</section>
+</main>
+</div>
+
+<div class="modal-backdrop" id="diaryEditModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="diaryEditTitle">
+    <div class="modal-head">
+      <h3 id="diaryEditTitle">Editar registro do Diário</h3>
+      <button class="btn" type="button" onclick="closeDiaryEdit()">✕</button>
+    </div>
+    <form id="diaryEditForm" class="form">
+      <input type="hidden" id="editDiaryId">
+      <label>Categoria
+        <select id="editDiaryCategory">
+          <option>Filmes</option><option>Séries</option><option>Comida</option><option>Cotidiano</option>
+          <option>Trabalho</option><option>Experiências</option><option>Festas</option><option>Eventos</option><option>Saúde</option><option>Família</option><option>Finanças</option><option>Outros</option>
+        </select>
+      </label>
+      <label>Data<input id="editDiaryDate" type="date" required></label>
+      <label>Título<input id="editDiaryTitleField" required></label>
+      <label>Registro<textarea id="editDiaryTextField" required></textarea></label>
+      <div class="modal-actions">
+        <button class="btn" type="button" onclick="closeDiaryEdit()">Cancelar</button>
+        <button class="btn primary" type="submit">Salvar alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-backdrop" id="diaryCreateModal">
+  <div class="modal diary-modal" role="dialog" aria-modal="true" aria-labelledby="diaryCreateTitle">
+    <div class="modal-head">
+      <div><h3 id="diaryCreateTitle">Cadastrar registro no Diário</h3><div class="muted">Preencha os campos que deseja guardar.</div></div>
+      <button class="btn" type="button" onclick="closeDiaryCreate()">✕</button>
+    </div>
+    <form id="diaryForm" class="form">
+      <div class="row"><label>Categoria<select id="diaryCategory"><option>Filmes</option><option>Séries</option><option>Comida</option><option>Cotidiano</option><option>Trabalho</option><option>Experiências</option><option>Festas</option><option>Eventos</option><option>Jogos</option><option>Estudos</option><option>Viagens</option><option>Saúde</option><option>Família</option><option>Finanças</option><option>Outros</option></select></label><label>Data<input id="diaryDate" type="date"></label></div>
+      <label>Título<input id="diaryTitle" required placeholder="Ex.: Filme que assisti hoje"></label>
+      <label>Registro<textarea id="diaryText" required placeholder="Escreva tudo o que quiser guardar..."></textarea></label>
+      <div class="modal-actions">
+        <button class="btn" type="button" onclick="closeDiaryCreate()">Cancelar</button>
+        <button class="btn primary" type="submit">Salvar no diário</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-backdrop" id="peopleCreateModal">
+  <div class="modal people-modal" role="dialog" aria-modal="true" aria-labelledby="peopleCreateTitle">
+    <div class="modal-head">
+      <div><h3 id="peopleCreateTitle">Cadastrar pessoa</h3><div class="muted">Preencha os dados que deseja guardar na ficha.</div></div>
+      <button class="btn" type="button" onclick="closePeopleCreate()">✕</button>
+    </div>
+    <form id="peopleForm" class="form">
+      <div class="row3">
+        <label>Nome<input id="personName" required autofocus></label>
+        <label>Relação<input id="personRelation" placeholder="mãe, amigo, colega..."></label>
+        <label>Aniversário<input id="personBirthday" type="date"></label>
+      </div>
+      <label>Endereço/Coordenada Geográfica/Link Maps<input id="personLocation" type="text" placeholder="Endereço, latitude/longitude ou link do Google Maps"></label>
+      <div class="row3">
+        <label>Nome do pai<input id="personFather"></label>
+        <label>Nome da mãe<input id="personMother"></label>
+        <label>CPF<input id="personCpf" inputmode="numeric" placeholder="Somente números ou formato 000.000.000-00"></label>
+      </div>
+      <div class="row3">
+        <label>Telefone<input id="personPhone" type="tel"></label>
+        <label>E-mail<input id="personEmail" type="email"></label>
+        <label>Empresa<input id="personCompany"></label>
+      </div>
+      <label>Observações<textarea id="personNotes" placeholder="Gostos, informações e observações importantes..."></textarea></label>
+      <div class="modal-actions">
+        <button class="btn" type="button" onclick="closePeopleCreate()">Cancelar</button>
+        <button class="btn primary" type="submit">Salvar pessoa</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-backdrop" id="peopleEditModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="peopleEditTitle">
+    <div class="modal-head">
+      <h3 id="peopleEditTitle">Editar pessoa</h3>
+      <button class="btn" type="button" onclick="closePeopleEdit()">✕</button>
+    </div>
+    <form id="peopleEditForm" class="form">
+      <input type="hidden" id="editPersonId">
+      <div class="row3">
+        <label>Nome<input id="editPersonName" required></label>
+        <label>Relação<input id="editPersonRelation" placeholder="mãe, amigo, colega..."></label>
+        <label>Aniversário<input id="editPersonBirthday" type="date"></label>
+      </div>
+      <label>Endereço/Coordenada Geográfica/Link Maps<input id="editPersonLocation" type="text" placeholder="Endereço, latitude/longitude ou link do Google Maps"></label>
+      <div class="row3">
+        <label>Nome do pai<input id="editPersonFather"></label>
+        <label>Nome da mãe<input id="editPersonMother"></label>
+        <label>CPF<input id="editPersonCpf" inputmode="numeric" placeholder="Somente números ou formato 000.000.000-00"></label>
+      </div>
+      <div class="row3">
+        <label>Telefone<input id="editPersonPhone" type="tel"></label>
+        <label>E-mail<input id="editPersonEmail" type="email"></label>
+        <label>Empresa<input id="editPersonCompany"></label>
+      </div>
+      <label>Observações<textarea id="editPersonNotes" placeholder="Gostos, informações e observações importantes..."></textarea></label>
+      <div class="modal-actions">
+        <button class="btn" type="button" onclick="closePeopleEdit()">Cancelar</button>
+        <button class="btn primary" type="submit">Salvar alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='agenda_memoria_ia_v1';
+let db=load();
+let viewDate=new Date();
+let editing=null;
+
+function fresh(){return {profile:{name:'',nickname:'',about:'',likes:'',dislikes:'',goals:''},diary:[],people:[],events:[],memories:[],settings:{lastReminderCheck:null}}}
+function load(){try{return Object.assign(fresh(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return fresh()}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db)); deriveMemories(true); renderAll()}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function today(){return new Date().toISOString().slice(0,10)}
+function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function toast(s){const x=document.getElementById('toast');x.textContent=s;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2500)}
+function fmtDate(d){if(!d)return '';return new Date(d+'T12:00:00').toLocaleDateString('pt-BR')}
+function daysUntilMonthDay(md){const [y,m,d]=md.split('-').map(Number);const now=new Date();let t=new Date(now.getFullYear(),m-1,d);t.setHours(12,0,0,0);const n=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);if(t<n)t.setFullYear(t.getFullYear()+1);return Math.round((t-n)/86400000)}
+function renderAll(){renderMetrics();renderDiary();renderPeople();renderEvents();renderCalendar();renderBirthdays();renderRecent();renderMemories();renderPreview()}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(b.dataset.section).classList.add('active');if(b.dataset.section==='backup')renderPreview()});
+
+document.getElementById('diaryDate').value=today();
+function openDiaryCreate(){document.getElementById('diaryCreateModal').classList.add('show');document.getElementById('diaryDate').value=today();setTimeout(()=>document.getElementById('diaryTitle').focus(),50)}
+function closeDiaryCreate(){document.getElementById('diaryCreateModal').classList.remove('show')}
+document.getElementById('diaryForm').onsubmit=e=>{e.preventDefault();db.diary.unshift({id:uid(),date:document.getElementById('diaryDate').value||today(),category:document.getElementById('diaryCategory').value,title:document.getElementById('diaryTitle').value.trim(),text:document.getElementById('diaryText').value.trim(),createdAt:new Date().toISOString()});e.target.reset();document.getElementById('diaryDate').value=today();closeDiaryCreate();save();toast('Registro salvo na memória.')}
+document.getElementById('peopleForm').onsubmit=e=>{e.preventDefault();db.people.push({id:uid(),name:personName.value.trim(),relation:personRelation.value.trim(),birthday:personBirthday.value,location:personLocation.value.trim(),fatherName:personFather.value.trim(),motherName:personMother.value.trim(),cpf:personCpf.value.trim(),phone:personPhone.value.trim(),email:personEmail.value.trim(),company:personCompany.value.trim(),notes:personNotes.value.trim()});e.target.reset();closePeopleCreate();save();checkBirthdays(true);toast('Pessoa cadastrada.')}
+document.getElementById('prefsForm').onsubmit=e=>{e.preventDefault();db.profile={name:profileName.value,nickname:profileNickname.value,about:profileAbout.value,likes:profileLikes.value,dislikes:profileDislikes.value,goals:profileGoals.value,concepts:profileConcepts.value};save();toast('Perfil salvo.')}
+function fillPrefs(){profileName.value=db.profile.name||'';profileNickname.value=db.profile.nickname||'';profileAbout.value=db.profile.about||'';profileLikes.value=db.profile.likes||'';profileDislikes.value=db.profile.dislikes||'';profileGoals.value=db.profile.goals||'';profileConcepts.value=db.profile.concepts||''}
+function editProfileField(field,label){const v=prompt('Editar '+label+':',db.profile[field]||'');if(v===null)return;db.profile[field]=v;save();fillPrefs();toast(label+' atualizado.')}
+
+function renderMetrics(){metrics.innerHTML=[['📝','Registros',db.diary.length],['👥','Pessoas',db.people.length],['📅','Eventos',db.events.length],['🧠','Memórias',db.memories.length]].map(x=>`<div class="card"><div class="muted">${x[0]} ${x[1]}</div><div class="metric">${x[2]}</div></div>`).join('')}
+function renderDiary(){const q=(diarySearch?.value||'').toLowerCase();const arr=db.diary.filter(x=>(x.title+x.text+x.category).toLowerCase().includes(q));diaryList.innerHTML=arr.length?arr.map(x=>`<div class="item"><div class="item-head"><div><span class="badge">${esc(x.category)} <button class="edit-btn" title="Editar registro" onclick="openDiaryEdit('${x.id}')">✎</button></span><h4>${esc(x.title)}</h4><div class="muted">${fmtDate(x.date)}</div></div><button class="btn danger" onclick="del('diary','${x.id}')">Excluir</button></div><p>${esc(x.text)}</p></div>`).join(''):'<div class="muted">Nenhum registro encontrado.</div>'}
+function renderPeople(){peopleList.innerHTML=db.people.length?db.people.map(x=>{const days=x.birthday?daysUntilMonthDay(x.birthday):null;return `<div class="item"><div class="item-head"><div><h4>${esc(x.name)} ${x.location?`<button class="maps-btn" title="Abrir no Google Maps" aria-label="Abrir no Google Maps" onclick="openGoogleMaps('${x.id}')">📍</button>`:''} <button class="edit-btn" title="Editar pessoa" aria-label="Editar pessoa" onclick="openPeopleEdit('${x.id}')">✎</button> ${x.relation?`<span class="badge">${esc(x.relation)}</span>`:''}</h4><div class="muted">${x.birthday?'Aniversário: '+fmtDate(x.birthday):'Sem aniversário'}${days!==null?' · '+(days===0?'Hoje':days===1?'Amanhã':`em ${days} dias`):''}</div></div><button class="btn danger" onclick="del('people','${x.id}')">Excluir</button></div><p>${esc(x.notes||'')}</p><div class="muted">Pai: ${esc(x.fatherName||'—')} · Mãe: ${esc(x.motherName||'—')}</div><div class="muted">CPF: ${esc(x.cpf||'—')} · Telefone: ${esc(x.phone||'—')} · E-mail: ${esc(x.email||'—')} · Empresa: ${esc(x.company||'—')}</div>${x.location?`<div class="muted">Localização: ${esc(x.location)}</div>`:''}</div>`}).join(''):'<div class="muted">Nenhuma pessoa cadastrada.</div>'}
+function renderBirthdays(){const arr=db.people.filter(x=>x.birthday).map(x=>({...x,days:daysUntilMonthDay(x.birthday)})).sort((a,b)=>a.days-b.days).slice(0,8);upcomingBirthdays.innerHTML=arr.length?arr.map(x=>`<div class="item"><b>${esc(x.name)}</b> <span class="muted">· ${x.days===0?'Hoje':x.days===1?'Amanhã':`em ${x.days} dias`}</span></div>`).join(''):'<div class="muted">Cadastre pessoas para acompanhar aniversários.</div>'}
+function renderRecent(){recentMemories.innerHTML=db.diary.slice(0,5).map(x=>`<div class="item"><b>${esc(x.title)}</b><div class="muted">${esc(x.category)} · ${fmtDate(x.date)}</div></div>`).join('')||'<div class="muted">Ainda não há memórias.</div>'}
+function deriveMemories(silent=false){const m=[];const p=db.profile;if(p.name)m.push({id:'profile-name',type:'perfil',key:'nome',value:p.name,source:'perfil'});if(p.nickname)m.push({id:'profile-nickname',type:'perfil',key:'como_ser_chamado',value:p.nickname,source:'perfil'});[['sobre',p.about],['gostos',p.likes],['nao_gosta',p.dislikes],['objetivos',p.goals],['conceitos',p.concepts]].forEach(([k,v])=>{if(v)m.push({id:'profile-'+k,type:'perfil',key:k,value:v,source:'perfil'})});db.people.forEach(x=>{m.push({id:'person-'+x.id,type:'pessoa',key:x.name,value:{nome:x.name,relacao:x.relation||'',aniversario:x.birthday||'',nome_pai:x.fatherName||'',nome_mae:x.motherName||'',cpf:x.cpf||'',telefone:x.phone||'',email:x.email||'',empresa:x.company||'',localizacao:x.location||'',observacoes:x.notes||''},source:'cadastro de pessoas'})});db.diary.forEach(x=>m.push({id:'diary-'+x.id,type:'experiência',key:x.category,value:`${x.title}: ${x.text}`,source:'diário',date:x.date}));db.memories=m;localStorage.setItem(KEY,JSON.stringify(db));if(!silent)toast('Memórias consolidadas.')}
+function renderMemories(){const q=(memorySearch?.value||'').toLowerCase();const arr=db.memories.filter(x=>JSON.stringify(x).toLowerCase().includes(q));memoryList.innerHTML=arr.length?arr.map(x=>{const value=typeof x.value==='object'?Object.entries(x.value).map(([k,v])=>`${k}: ${v}`).join(' | '):x.value;return `<div class="item"><div class="item-head"><div><span class="badge">${esc(x.type)}</span><h4>${esc(x.key)}</h4></div><span class="muted">${esc(x.source)}</span></div><p>${esc(value)}</p></div>`}).join(''):'<div class="muted">Nenhuma memória consolidada.</div>'}
+function renderPreview(){memoryPreview.textContent=buildMemoryText()}
+function buildMemoryText(){const p=db.profile;return `MEMÓRIA VIRTUAL — AGENDA & MEMÓRIA IA\nGerado em: ${new Date().toLocaleString('pt-BR')}\n\nPERFIL\nNome: ${p.name||''}\nComo prefere ser chamado: ${p.nickname||''}\nSobre: ${p.about||''}\nGostos: ${p.likes||''}\nNão gosta: ${p.dislikes||''}\nObjetivos: ${p.goals||''}\nConceitos: ${p.concepts||''}\n\nPESSOAS\n${db.people.map(x=>`- Nome: ${x.name}
+  Relação: ${x.relation||''}
+  Aniversário: ${x.birthday||''}
+  Nome do pai: ${x.fatherName||''}
+  Nome da mãe: ${x.motherName||''}
+  CPF: ${x.cpf||''}
+  Telefone: ${x.phone||''}
+  E-mail: ${x.email||''}
+  Empresa: ${x.company||''}
+  Endereço/Coordenada Geográfica/Link Maps: ${x.location||''}
+  Observações: ${x.notes||''}`).join('\n')||'- Nenhuma'}\n\nPREFERÊNCIAS/EXPERIÊNCIAS DO DIÁRIO\n${db.diary.map(x=>`[${x.date}] ${x.category} — ${x.title}\n${x.text}`).join('\n\n')||'- Nenhuma'}\n\nMEMÓRIAS CONSOLIDADAS\n${db.memories.map(x=>`- [${x.type}] ${x.key}: ${x.value}`).join('\n')||'- Nenhuma'}\n\nINSTRUÇÃO PARA OUTRA IA\nUse este arquivo como contexto pessoal. Diferencie fatos registrados de inferências. Não invente informações ausentes. Considere datas e relações conforme registradas pelo usuário.`}
+function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+function buildCSV(){const rows=[['tipo','id','categoria','titulo/chave','valor','data','fonte','nome_pai','nome_mae','cpf','telefone','email','localizacao','observacoes']];
+const p=db.profile;
+[['nome',p.name],['como_ser_chamado',p.nickname],['sobre',p.about],['gostos',p.likes],['nao_gosta',p.dislikes],['objetivos',p.goals],['conceitos',p.concepts]].forEach(([k,v])=>{if(v)rows.push(['perfil','profile','perfil',k,v,'','perfil','','','','','',''])});db.diary.forEach(x=>rows.push(['diario',x.id,x.category,x.title,x.text,x.date,'diário','','','','','','']));db.people.forEach(x=>rows.push(['pessoa',x.id,x.relation,x.name,`aniversário: ${x.birthday||''}; empresa: ${x.company||''}`,'','cadastro',x.fatherName||'',x.motherName||'',x.cpf||'',x.phone||'',x.email||'',x.location||'',x.notes||'']));db.memories.forEach(x=>{const v=typeof x.value==='object'?JSON.stringify(x.value):x.value;rows.push(['memoria',x.id,x.type,x.key,v,x.date||'',x.source||'','','','','','',''])});return rows.map(r=>r.map(csvCell).join(',')).join('\n')}
+function download(name,content,type='text/plain'){const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function downloadJSON(){download('memoria-virtual-backup.json',JSON.stringify({...db,exportedAt:new Date().toISOString(),formatVersion:1},null,2),'application/json')}
+function downloadCSV(){download('memoria-virtual.csv',buildCSV(),'text/csv;charset=utf-8')}
+function downloadMemoryTXT(){download('memoria-virtual.txt',buildMemoryText(),'text/plain;charset=utf-8')}
+function importJSON(){const f=importFile.files[0];if(!f)return toast('Selecione um arquivo JSON.');const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.profile||!Array.isArray(x.diary)||!Array.isArray(x.people))throw Error();db=Object.assign(fresh(),x);save();fillPrefs();toast('Backup restaurado.')}catch(e){toast('Arquivo inválido ou incompatível.')}};r.readAsText(f)}
+function del(type,id){if(!confirm('Excluir este registro?'))return;db[type]=db[type].filter(x=>x.id!==id);save()}
+function openDiaryEdit(id){
+  const x=db.diary.find(v=>v.id===id);
+  if(!x)return;
+  editDiaryId.value=x.id;
+  editDiaryCategory.value=x.category||'Outros';
+  editDiaryDate.value=x.date||today();
+  editDiaryTitleField.value=x.title||'';
+  editDiaryTextField.value=x.text||'';
+  diaryEditModal.classList.add('show');
+  setTimeout(()=>editDiaryTitleField.focus(),50);
+}
+function closeDiaryEdit(){diaryEditModal.classList.remove('show')}
+document.getElementById('diaryEditForm').onsubmit=e=>{
+  e.preventDefault();
+  const x=db.diary.find(v=>v.id===editDiaryId.value);
+  if(!x)return;
+  x.category=editDiaryCategory.value;
+  x.date=editDiaryDate.value||today();
+  x.title=editDiaryTitleField.value.trim();
+  x.text=editDiaryTextField.value.trim();
+  save();
+  closeDiaryEdit();
+  toast('Registro do Diário atualizado.');
+};
+document.getElementById('diaryEditModal').addEventListener('click',e=>{
+  if(e.target.id==='diaryEditModal')closeDiaryEdit();
+});
+function editDiaryField(id,field,label){const x=db.diary.find(v=>v.id===id);if(!x)return;const v=prompt('Editar '+label+':',x[field]||'');if(v===null)return;x[field]=v;save();toast(label+' atualizado.')}
+function openPeopleCreate(){peopleCreateModal.classList.add('show');setTimeout(()=>personName.focus(),0)}
+function closePeopleCreate(){peopleCreateModal.classList.remove('show')}
+function openPeopleEdit(id){const x=db.people.find(v=>v.id===id);if(!x)return;editPersonId.value=x.id;editPersonName.value=x.name||'';editPersonRelation.value=x.relation||'';editPersonBirthday.value=x.birthday||'';editPersonLocation.value=x.location||'';editPersonFather.value=x.fatherName||'';editPersonMother.value=x.motherName||'';editPersonCpf.value=x.cpf||'';editPersonPhone.value=x.phone||'';editPersonEmail.value=x.email||'';editPersonCompany.value=x.company||'';editPersonNotes.value=x.notes||'';peopleEditModal.classList.add('show');editPersonName.focus()}
+function openGoogleMaps(id){
+  const x=db.people.find(v=>v.id===id);
+  if(!x || !x.location)return;
+  const value=String(x.location).trim();
+  const isMapsLink=/^(https?:\/\/)?(www\.)?(google\.[^\s/]+\/maps|maps\.app\.goo\.gl)/i.test(value);
+  const url=isMapsLink?(value.startsWith('http://')||value.startsWith('https://')?value:'https://'+value):'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(value);
+  window.open(url,'_blank','noopener,noreferrer');
+}
+function closePeopleEdit(){peopleEditModal.classList.remove('show')}
+document.getElementById('peopleEditForm').onsubmit=e=>{e.preventDefault();const x=db.people.find(v=>v.id===editPersonId.value);if(!x)return;x.name=editPersonName.value;x.relation=editPersonRelation.value;x.birthday=editPersonBirthday.value;x.location=editPersonLocation.value;x.fatherName=editPersonFather.value;x.motherName=editPersonMother.value;x.cpf=editPersonCpf.value;x.phone=editPersonPhone.value;x.email=editPersonEmail.value;x.company=editPersonCompany.value;x.notes=editPersonNotes.value;save();closePeopleEdit();checkBirthdays(true);toast('Pessoa atualizada.')}
+
+function editEvent(id){const x=db.events.find(v=>v.id===id);if(!x)return;const title=prompt('Editar título:',x.title||'');if(title===null)return;const date=prompt('Editar data (AAAA-MM-DD):',x.date||today());if(date===null)return;const time=prompt('Editar horário:',x.time||'');if(time===null)return;x.title=title;x.date=date;x.time=time;save();toast('Evento atualizado.')}
+function editMemory(id){const x=db.memories.find(v=>v.id===id);if(!x)return;const v=prompt('Editar valor da memória:',x.value||'');if(v===null)return;x.value=v;save();toast('Memória atualizada.')}
+function newEvent(date=today()){const title=prompt('Título do evento:');if(!title)return;const d=prompt('Data (AAAA-MM-DD):',date)||date;const time=prompt('Horário (opcional):','');db.events.push({id:uid(),title,date:d,time});save();toast('Evento criado.')}
+function renderEvents(){const arr=[...db.events].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));eventList.innerHTML=arr.length?arr.map(x=>`<div class="item"><div class="item-head"><div><h4>${esc(x.title)} <button class="edit-btn" title="Editar evento" onclick="editEvent('${x.id}')">✎</button></h4><div class="muted">${fmtDate(x.date)} ${x.time?'· '+esc(x.time):''}</div></div><button class="btn danger" onclick="del('events','${x.id}')">Excluir</button></div></div>`).join(''):'<div class="muted">Nenhum evento.</div>'}
+function renderCalendar(){const y=viewDate.getFullYear(),m=viewDate.getMonth();monthTitle.textContent=viewDate.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});const first=new Date(y,m,1),start=(first.getDay()+6)%7;const days=new Date(y,m+1,0).getDate(),prev=new Date(y,m,0).getDate();let html=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(x=>`<div class="weekday">${x}</div>`).join('');for(let i=0;i<42;i++){const n=i-start+1;let d,muted=false;if(n<1){d=new Date(y,m-1,prev+n);muted=true}else if(n>days){d=new Date(y,m+1,n-days);muted=true}else d=new Date(y,m,n);const ds=d.toISOString().slice(0,10);const ev=db.events.filter(x=>x.date===ds);const people=db.people.filter(x=>x.birthday&&x.birthday.slice(5)===ds.slice(5));html+=`<div class="day ${muted?'mutedday':''} ${ds===today()?'today':''}" onclick="newEvent('${ds}')"><div class="daynum">${d.getDate()}</div>${people.map(p=>`<div class="event">🎂 ${esc(p.name)}</div>`).join('')}${ev.map(x=>`<div class="event">📌 ${esc(x.title)}</div>`).join('')}</div>`}calendarGrid.innerHTML=html}
+function prevMonth(){viewDate.setMonth(viewDate.getMonth()-1);renderCalendar()}function nextMonth(){viewDate.setMonth(viewDate.getMonth()+1);renderCalendar()}function goToday(){viewDate=new Date();renderCalendar()}
+function openQuick(){const c=prompt('Categoria: Filmes, Séries, Comida, Cotidiano, Trabalho, Experiências, Festas, Eventos, Jogos, Estudos, Viagens, Saúde, Família, Finanças, Outros');if(!c)return;const t=prompt('Título:');if(!t)return;const text=prompt('Registro:')||'';db.diary.unshift({id:uid(),date:today(),category:c,title:t,text,createdAt:new Date().toISOString()});save();toast('Registro rápido salvo.')}
+function newEventFromPrompt(){newEvent()}
+function checkBirthdays(manual=false){const now=new Date();const notices=[];db.people.forEach(p=>{if(!p.birthday)return;const d=daysUntilMonthDay(p.birthday);if(d===0)notices.push(`Hoje é aniversário de ${p.name}.`);if(d===2)notices.push(`Faltam 2 dias para o aniversário de ${p.name}.`)});if(notices.length){if('Notification'in window&&Notification.permission==='granted')notices.forEach(n=>new Notification('Agenda & Memória IA',{body:n}));if(manual)toast(notices[0])}}
+function requestNotifications(){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission()}
+document.addEventListener('click',e=>{if(e.target.closest('#backup'))requestNotifications()});
+document.addEventListener('click',e=>{if(e.target===diaryCreateModal)closeDiaryCreate();if(e.target===peopleCreateModal)closePeopleCreate();if(e.target===peopleEditModal)closePeopleEdit();if(e.target===diaryEditModal)closeDiaryEdit()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDiaryCreate();closePeopleCreate();closePeopleEdit();closeDiaryEdit()}});
+setInterval(checkBirthdays,60000);
+fillPrefs();renderAll();checkBirthdays();
+</script>
+
+<script>
+(function(){
+  function applyPeopleSearch(){
+    const input=document.getElementById('peopleSearch');
+    if(!input) return;
+    const q=(input.value||'').trim().toLocaleLowerCase('pt-BR');
+    const root=document.getElementById('peopleList') || document.getElementById('peopleRecords');
+    if(!root) return;
+    Array.from(root.children).forEach(function(row){
+      const text=(row.textContent||'').toLocaleLowerCase('pt-BR');
+      row.style.display=(!q || text.indexOf(q)!==-1)?'':'none';
+    });
+  }
+  document.addEventListener('input',function(e){
+    if(e.target && e.target.id==='peopleSearch') applyPeopleSearch();
+  });
+  const oldRenderPeople=window.renderPeople;
+  if(typeof oldRenderPeople==='function'){
+    window.renderPeople=function(){
+      const result=oldRenderPeople.apply(this,arguments);
+      setTimeout(applyPeopleSearch,0);
+      return result;
+    };
+  }
+  window.filterPeople=applyPeopleSearch;
+})();
+</script>
+</body>
+</html>
